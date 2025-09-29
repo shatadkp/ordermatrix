@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Reordering Tool - DSM Sequence Analysis</title>
+    <style>
+        :root {
+            /* Carbon Design Tokens - g10 theme */
+            --ui-background: #f4f4f4;
+            --ui-01: #ffffff;
+            --ui-02: #f4f4f4;
+            --ui-03: #e0e0e0;
+            --ui-04: #8d8d8d;
+            --ui-05: #161616;
+            
+            --text-01: #161616;
+            --text-02: #525252;
+            --text-03: #a8a8a8;
+            --text-04: #ffffff;
+            --text-disabled: #c6c6c6;
+            
+            --interactive-01: #0f62fe;
+            --interactive-02: #393939;
+            --interactive-03: #0f62fe;
+            --interactive-04: #0f62fe;
+            
+            --focus: #0f62fe;
+            --inverse-focus-ui: #ffffff;
+            
+            --hover-primary: #0353e9;
+            --hover-primary-text: #0043ce;
+            --hover-secondary: #4c4c4c;
+            --hover-ui: #e5e5e5;
+            
+            --active-primary: #002d9c;
+            --active-secondary: #6f6f6f;
+            --active-ui: #c6c6c6;
+            
+            --selected-ui: #e0e0e0;
+            --selected-light-ui: #e0e0e0;
+            
+            --layer-01: #ffffff;
+            --layer-02: #f4f4f4;
+            --layer-03: #e0e0e0;
+            
+            --field-01: #ffffff;
+            --field-02: #f4f4f4;
+            
+            --inverse-01: #ffffff;
+            --inverse-02: #393939;
+            
+            --support-01: #da1e28;
+            --support-02: #24a148;
+            --support-03: #f1c21b;
+            --support-04: #0043ce;
+            
+            --overlay-01: rgba(22, 22, 22, 0.5);
+            
+            --spacing-01: 0.125rem;
+            --spacing-02: 0.25rem;
+            --spacing-03: 0.5rem;
+            --spacing-04: 0.75rem;
+            --spacing-05: 1rem;
+            --spacing-06: 1.5rem;
+            --spacing-07: 2rem;
+            --spacing-08: 2.5rem;
+            --spacing-09: 3rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* Carbon Design Tokens - g100 theme */
+                --ui-background: #161616;
+                --ui-01: #262626;
+                --ui-02: #393939;
+                --ui-03: #525252;
+                --ui-04: #8d8d8d;
+                --ui-05: #f4f4f4;
+                
+                --text-01: #f4f4f4;
+                --text-02: #c6c6c6;
+                --text-03: #6f6f6f;
+                --text-04: #ffffff;
+                
+                --interactive-01: #78a9ff;
+                --interactive-02: #c6c6c6;
+                --interactive-03: #ffffff;
+                --interactive-04: #4589ff;
+                
+                --hover-primary: #a6c8ff;
+                --hover-primary-text: #a6c8ff;
+                --hover-secondary: #a8a8a8;
+                --hover-ui: #4c4c4c;
+                
+                --active-primary: #d0e2ff;
+                --active-secondary: #c6c6c6;
+                --active-ui: #6f6f6f;
+                
+                --selected-ui: #525252;
+                --selected-light-ui: #525252;
+                
+                --layer-01: #262626;
+                --layer-02: #393939;
+                --layer-03: #525252;
+                
+                --field-01: #262626;
+                --field-02: #393939;
+                
+                --support-01: #ff8389;
+                --support-02: #42be65;
+                --support-03: #f1c21b;
+                --support-04: #78a9ff;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Carbon squared - no border radius */
+            border-radius: 0 !important;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--ui-background);
+            color: var(--text-01);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--ui-05);
+            color: var(--inverse-01);
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 var(--spacing-05);
+            border-bottom: 1px solid var(--ui-04);
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 0.16px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1584px;
+            margin: 0 auto;
+            padding: var(--spacing-06);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--layer-01);
+            border: 1px solid var(--ui-03);
+            margin-bottom: var(--spacing-05);
+            padding: var(--spacing-05);
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-05);
+            margin-bottom: var(--spacing-05);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-02);
+            margin-bottom: var(--spacing-02);
+            letter-spacing: 0.32px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            height: 40px;
+            padding: 0 var(--spacing-04);
+            background: var(--field-01);
+            border: 1px solid var(--ui-04);
+            color: var(--text-01);
+            font-size: 14px;
+            transition: all 0.15s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid var(--focus);
+            outline-offset: -2px;
+            border-color: var(--focus);
+        }
+
+        /* Buttons */
+        .btn {
+            height: 48px;
+            padding: 0 var(--spacing-05);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-03);
+        }
+
+        .btn-primary {
+            background: var(--interactive-01);
+            color: var(--text-04);
+        }
+
+        .btn-primary:hover {
+            background: var(--hover-primary);
+        }
+
+        .btn-primary:active {
+            background: var(--active-primary);
+        }
+
+        .btn-secondary {
+            background: var(--interactive-02);
+            color: var(--text-04);
+        }
+
+        .btn-secondary:hover {
+            background: var(--hover-secondary);
+        }
+
+        .btn-tertiary {
+            background: transparent;
+            color: var(--interactive-01);
+            border: 1px solid var(--interactive-01);
+        }
+
+        .btn-tertiary:hover {
+            background: var(--hover-ui);
+        }
+
+        .btn-danger {
+            background: var(--support-01);
+            color: var(--text-04);
+        }
+
+        .btn-danger:hover {
+            background: #ba1b23;
+        }
+
+        .btn-success {
+            background: var(--support-02);
+            color: var(--text-04);
+        }
+
+        .btn-success:hover {
+            background: #198038;
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing-03);
+            flex-wrap: wrap;
+        }
+
+        /* Main Section */
+        .main-section {
+            background: var(--layer-01);
+            border: 1px solid var(--ui-03);
+            margin-bottom: var(--spacing-06);
+        }
+
+        .section-header {
+            background: var(--layer-02);
+            padding: var(--spacing-04) var(--spacing-05);
+            border-bottom: 1px solid var(--ui-03);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-01);
+        }
+
+        .section-content {
+            padding: var(--spacing-05);
+        }
+
+        /* Matrix Table Container */
+        .matrix-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 700px;
+            border: 1px solid var(--ui-03);
+            background: var(--field-01);
+        }
+
+        /* Matrix Table */
+        #matrixTable {
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        #matrixTable th,
+        #matrixTable td {
+            min-width: 60px;
+            height: 35px;
+            text-align: center;
+            border: 1px solid var(--ui-03);
+            position: relative;
+            padding: 2px;
+        }
+
+        #matrixTable th {
+            background: var(--layer-02);
+            color: var(--text-01);
+            font-weight: 600;
+            font-size: 12px;
+            position: sticky;
+            z-index: 10;
+        }
+
+        /* Sticky headers */
+        #matrixTable thead th {
+            top: 0;
+            background: var(--layer-02);
+        }
+
+        #matrixTable tbody th:first-child,
+        #matrixTable thead th:first-child,
+        #matrixTable thead th:nth-child(2) {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: var(--layer-02);
+        }
+
+        #matrixTable thead th:nth-child(2) {
+            left: 80px;
+        }
+
+        #matrixTable tbody th:nth-child(2) {
+            position: sticky;
+            left: 80px;
+            background: var(--layer-02);
+            z-index: 10;
+        }
+
+        #matrixTable thead th:first-child {
+            z-index: 12;
+        }
+
+        #matrixTable td {
+            background: var(--field-01);
+            color: var(--text-01);
+        }
+
+        #matrixTable td.diagonal {
+            background: #8d8d8d;
+            color: var(--text-04);
+        }
+
+        #matrixTable td.has-value {
+            background: #24a148;
+            color: var(--text-04);
+            font-weight: 600;
+        }
+
+        /* Input fields in table */
+        .table-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 13px;
+            color: inherit;
+            padding: 2px;
+        }
+
+        .sequence-input {
+            width: 70px;
+            background: var(--field-01);
+            border: 1px solid var(--ui-04);
+            text-align: center;
+            font-weight: 600;
+            color: var(--interactive-01);
+        }
+
+        .sequence-input:focus {
+            outline: 2px solid var(--focus);
+            outline-offset: -2px;
+        }
+
+        .element-name-input {
+            width: 100%;
+            min-width: 100px;
+            background: var(--field-01);
+            border: 1px solid var(--ui-04);
+            padding: 2px 4px;
+            font-weight: 500;
+        }
+
+        .element-name-input:focus {
+            outline: 2px solid var(--focus);
+            outline-offset: -2px;
+        }
+
+        /* Instruction Box */
+        .instruction-box {
+            background: #e8f4fd;
+            border-left: 4px solid var(--interactive-01);
+            padding: var(--spacing-04);
+            margin-bottom: var(--spacing-04);
+        }
+
+        .instruction-box h3 {
+            color: var(--interactive-01);
+            margin-bottom: var(--spacing-02);
+            font-size: 14px;
+        }
+
+        .instruction-box p {
+            color: var(--text-01);
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .instruction-box ul {
+            margin-top: var(--spacing-02);
+            margin-left: var(--spacing-05);
+        }
+
+        .instruction-box li {
+            margin-bottom: var(--spacing-01);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            gap: var(--spacing-06);
+            padding: var(--spacing-03);
+            background: var(--layer-02);
+            border: 1px solid var(--ui-03);
+            margin-top: var(--spacing-04);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-03);
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: var(--text-02);
+            text-transform: uppercase;
+            letter-spacing: 0.32px;
+        }
+
+        .status-value {
+            font-size: 16px;
+            font-weight: 300;
+            color: var(--text-01);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-04);
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>Matrix Reordering Tool — DSM Sequence Analysis</h1>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-grid">
+                <div class="control-group">
+                    <label for="matrixSize">MATRIX SIZE</label>
+                    <input type="number" id="matrixSize" min="2" max="50" value="7">
+                </div>
+                
+                <div class="control-group">
+                    <label for="defaultValue">DEFAULT CELL VALUE</label>
+                    <input type="text" id="defaultValue" value="0" placeholder="Enter default value">
+                </div>
+                
+                <div class="control-group">
+                    <label for="diagonalValue">DIAGONAL VALUE</label>
+                    <input type="text" id="diagonalValue" value="•" placeholder="Enter diagonal value">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="generateMatrix()">
+                    Generate Matrix
+                </button>
+                <button class="btn btn-success" onclick="applyReordering()">
+                    Apply Reordering
+                </button>
+                <button class="btn btn-secondary" onclick="resetSequence()">
+                    Reset Sequence
+                </button>
+                <button class="btn btn-tertiary" onclick="exportMatrix()">
+                    Export JSON
+                </button>
+                <button class="btn btn-tertiary" onclick="importMatrix()">
+                    Import JSON
+                </button>
+                <button class="btn btn-tertiary" onclick="exportCSV()">
+                    Export CSV
+                </button>
+                <button class="btn btn-danger" onclick="clearMatrix()">
+                    Clear Values
+                </button>
+            </div>
+        </div>
+
+        <!-- Matrix Section -->
+        <div class="main-section">
+            <div class="section-header">
+                <h2 class="section-title">DEPENDENCY STRUCTURE MATRIX</h2>
+            </div>
+            <div class="section-content">
+                <div class="matrix-container" id="matrixContainer">
+                    <!-- Matrix table will be generated here -->
+                </div>
+                
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="status-label">Matrix Size:</span>
+                        <span class="status-value" id="currentSize">0×0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Non-zero Values:</span>
+                        <span class="status-value" id="nonZeroCount">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Action:</span>
+                        <span class="status-value" id="lastAction">Ready</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions at the bottom -->
+        <div class="instruction-box">
+            <h3>📋 How to Use</h3>
+            <p>This tool allows you to create a matrix, edit element names, add values, and reorder rows/columns using sequence numbers.</p>
+            <ul>
+                <li><strong>Step 1:</strong> Set the matrix size and click "Generate Matrix"</li>
+                <li><strong>Step 2:</strong> Edit element names in the header row/column</li>
+                <li><strong>Step 3:</strong> Add values to matrix cells (click any cell to edit)</li>
+                <li><strong>Step 4:</strong> Change sequence numbers in the leftmost column (supports decimals for fine control)</li>
+                <li><strong>Step 5:</strong> Click "Apply Reordering" to sort by sequence numbers</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+
+    <script>
+        let matrixData = [];
+        let elementNames = [];
+        let sequenceNumbers = [];
+        let matrixSize = 0;
+
+        // Initialize
+        window.onload = function() {
+            generateMatrix();
+        };
+
+        function generateMatrix() {
+            matrixSize = parseInt(document.getElementById('matrixSize').value);
+            const defaultVal = document.getElementById('defaultValue').value || '0';
+            const diagonalVal = document.getElementById('diagonalValue').value || '•';
+            
+            // Initialize arrays
+            matrixData = [];
+            elementNames = [];
+            sequenceNumbers = [];
+            
+            // Generate default element names and sequence numbers
+            for (let i = 0; i < matrixSize; i++) {
+                elementNames.push(`Element ${i + 1}`);
+                sequenceNumbers.push(i + 1);
+                matrixData[i] = [];
+                for (let j = 0; j < matrixSize; j++) {
+                    if (i === j) {
+                        matrixData[i][j] = diagonalVal;
+                    } else {
+                        matrixData[i][j] = defaultVal;
+                    }
+                }
+            }
+            
+            renderMatrix();
+            updateStatus('Matrix generated');
+        }
+
+        function renderMatrix() {
+            const container = document.getElementById('matrixContainer');
+            
+            // Create table
+            let html = '<table id="matrixTable">';
+            
+            // Header row
+            html += '<thead><tr>';
+            html += '<th style="width: 80px;">SEQ</th>';
+            html += '<th style="width: 120px;">ELEMENT</th>';
+            
+            for (let i = 0; i < matrixSize; i++) {
+                html += `<th><input type="text" class="element-name-input" value="${elementNames[i]}" 
+                         onchange="updateElementName(${i}, this.value, 'col')" 
+                         title="${elementNames[i]}"></th>`;
+            }
+            html += '</tr></thead>';
+            
+            // Data rows
+            html += '<tbody>';
+            for (let i = 0; i < matrixSize; i++) {
+                html += '<tr>';
+                
+                // Sequence number column
+                html += `<th><input type="text" class="sequence-input" value="${sequenceNumbers[i]}" 
+                         onchange="updateSequence(${i}, this.value)"></th>`;
+                
+                // Element name column
+                html += `<th><input type="text" class="element-name-input" value="${elementNames[i]}" 
+                         onchange="updateElementName(${i}, this.value, 'row')"
+                         title="${elementNames[i]}"></th>`;
+                
+                // Data cells
+                for (let j = 0; j < matrixSize; j++) {
+                    const isDiagonal = i === j;
+                    const cellClass = isDiagonal ? 'diagonal' : (matrixData[i][j] && matrixData[i][j] !== '0' ? 'has-value' : '');
+                    const isReadonly = isDiagonal ? 'readonly' : '';
+                    
+                    html += `<td class="${cellClass}">
+                            <input type="text" class="table-input" value="${matrixData[i][j]}" 
+                            onchange="updateCell(${i}, ${j}, this.value)"
+                            onfocus="this.select()"
+                            ${isReadonly}>
+                        </td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</tbody>';
+            html += '</table>';
+            
+            container.innerHTML = html;
+            
+            updateMetrics();
+        }
+
+        function updateCell(row, col, value) {
+            matrixData[row][col] = value;
+            
+            // Update cell appearance
+            const table = document.getElementById('matrixTable');
+            const cell = table.rows[row + 1].cells[col + 2];
+            
+            if (row !== col) {
+                if (value && value !== '0') {
+                    cell.className = 'has-value';
+                } else {
+                    cell.className = '';
+                }
+            }
+            
+            updateMetrics();
+            updateStatus(`Cell [${elementNames[row]}, ${elementNames[col]}] updated`);
+        }
+
+        function updateElementName(index, value, type) {
+            elementNames[index] = value;
+            
+            // Update both row and column headers
+            const table = document.getElementById('matrixTable');
+            
+            // Update column header
+            const colHeader = table.rows[0].cells[index + 2].querySelector('input');
+            if (colHeader && type === 'row') {
+                colHeader.value = value;
+            }
+            
+            // Update row header
+            const rowHeader = table.rows[index + 1].cells[1].querySelector('input');
+            if (rowHeader && type === 'col') {
+                rowHeader.value = value;
+            }
+            
+            updateStatus(`Element name updated: ${value}`);
+        }
+
+        function updateSequence(index, value) {
+            const val = parseFloat(value);
+            if (!isNaN(val)) {
+                sequenceNumbers[index] = val;
+                updateStatus(`Sequence updated for ${elementNames[index]}`);
+            }
+        }
+
+        function applyReordering() {
+            // Create array of indices with their sequence numbers
+            const indices = [];
+            for (let i = 0; i < matrixSize; i++) {
+                indices.push({ index: i, sequence: sequenceNumbers[i] });
+            }
+            
+            // Sort by sequence number
+            indices.sort((a, b) => a.sequence - b.sequence);
+            
+            // Create new ordered arrays
+            const newElementNames = [];
+            const newSequenceNumbers = [];
+            const newMatrixData = [];
+            
+            for (let i = 0; i < matrixSize; i++) {
+                const oldIndex = indices[i].index;
+                newElementNames.push(elementNames[oldIndex]);
+                newSequenceNumbers.push(i + 1); // Reset to sequential
+                newMatrixData[i] = [];
+                
+                for (let j = 0; j < matrixSize; j++) {
+                    const oldColIndex = indices[j].index;
+                    newMatrixData[i][j] = matrixData[oldIndex][oldColIndex];
+                }
+            }
+            
+            // Update global arrays
+            elementNames = newElementNames;
+            sequenceNumbers = newSequenceNumbers;
+            matrixData = newMatrixData;
+            
+            // Re-render
+            renderMatrix();
+            updateStatus('Matrix reordered successfully');
+        }
+
+        function resetSequence() {
+            for (let i = 0; i < matrixSize; i++) {
+                sequenceNumbers[i] = i + 1;
+            }
+            renderMatrix();
+            updateStatus('Sequence reset to default');
+        }
+
+        function clearMatrix() {
+            const defaultVal = document.getElementById('defaultValue').value || '0';
+            const diagonalVal = document.getElementById('diagonalValue').value || '•';
+            
+            for (let i = 0; i < matrixSize; i++) {
+                for (let j = 0; j < matrixSize; j++) {
+                    if (i === j) {
+                        matrixData[i][j] = diagonalVal;
+                    } else {
+                        matrixData[i][j] = defaultVal;
+                    }
+                }
+            }
+            
+            renderMatrix();
+            updateStatus('Matrix values cleared');
+        }
+
+        function exportMatrix() {
+            const data = {
+                size: matrixSize,
+                elementNames: elementNames,
+                sequenceNumbers: sequenceNumbers,
+                matrix: matrixData,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `matrix_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            updateStatus('Matrix exported as JSON');
+        }
+
+        function exportCSV() {
+            let csv = 'SEQ,ELEMENT';
+            
+            // Add column headers
+            for (let i = 0; i < matrixSize; i++) {
+                csv += ',' + elementNames[i].replace(/,/g, ';');
+            }
+            csv += '\n';
+            
+            // Add data rows
+            for (let i = 0; i < matrixSize; i++) {
+                csv += sequenceNumbers[i] + ',' + elementNames[i].replace(/,/g, ';');
+                for (let j = 0; j < matrixSize; j++) {
+                    csv += ',' + matrixData[i][j].toString().replace(/,/g, ';');
+                }
+                csv += '\n';
+            }
+            
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `matrix_${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            updateStatus('Matrix exported as CSV');
+        }
+
+        function importMatrix() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.size && data.elementNames && data.matrix) {
+                        matrixSize = data.size;
+                        elementNames = data.elementNames;
+                        sequenceNumbers = data.sequenceNumbers || Array.from({length: matrixSize}, (_, i) => i + 1);
+                        matrixData = data.matrix;
+                        
+                        document.getElementById('matrixSize').value = matrixSize;
+                        renderMatrix();
+                        updateStatus('Matrix imported successfully');
+                    } else {
+                        alert('Invalid matrix file format');
+                    }
+                } catch (err) {
+                    alert('Error importing file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function updateMetrics() {
+            // Update size display
+            document.getElementById('currentSize').textContent = `${matrixSize}×${matrixSize}`;
+            
+            // Count non-zero/non-default values
+            const defaultVal = document.getElementById('defaultValue').value || '0';
+            let nonZeroCount = 0;
+            
+            for (let i = 0; i < matrixSize; i++) {
+                for (let j = 0; j < matrixSize; j++) {
+                    if (i !== j && matrixData[i][j] !== defaultVal && matrixData[i][j] !== '') {
+                        nonZeroCount++;
+                    }
+                }
+            }
+            
+            document.getElementById('nonZeroCount').textContent = nonZeroCount;
+        }
+
+        function updateStatus(message) {
+            document.getElementById('lastAction').textContent = message;
+            
+            // Clear status after 3 seconds
+            setTimeout(() => {
+                if (document.getElementById('lastAction').textContent === message) {
+                    document.getElementById('lastAction').textContent = 'Ready';
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
